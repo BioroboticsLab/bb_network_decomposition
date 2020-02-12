@@ -23,7 +23,7 @@ def scale_projection_by_day(factor_df, column, inplace=False, how='percentiles')
             factor_df.iloc[idxer] /= np.percentile(factor_df.iloc[idxer], 95)
             factor_df.iloc[idxer] *= 40
         elif how == 'minmax':
-            factor_df.iloc[idxer] = sklearn.preprocessing.MinMaxScaler().fit_transform(factor_df.iloc[idxer])
+            factor_df.iloc[idxer] = sklearn.preprocessing.MinMaxScaler().fit_transform(factor_df.iloc[idxer][:, None])[:, 0]
             factor_df.iloc[idxer] *= 40
         else:
             assert False
