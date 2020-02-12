@@ -1,3 +1,4 @@
+import datetime
 import numpy as np
 import pandas as pd
 import sklearn
@@ -73,3 +74,23 @@ def evaluate_network_factors(df, model, n_splits=25, groupby=None, labels=locati
     regression_pivot = regression_pivot.sort_values("mean")
 
     return regression_results_df, regression_pivot
+
+
+def evaluate_future_predictability(df, model, days_into_future=0, labels=location_labels, factors=default_factors, evaluation_kws={}):
+    df_copy = df.copy()
+    df_copy.date += datetime.timedelta(days=days_into_future)
+
+    raw_factors = []
+    for f in factors:
+        if '+' in f:
+            for f_part in f.split('+'):
+                raw_factors.append(f_part)
+        elif 'log' in f:
+            continue
+        else:
+            raw_factors.append(f)
+
+    df_copy = df_copy[['date', 'bee_id'] + labels].merge(df[['date', 'bee_id'] + raw_factors], on=('date', 'bee_id'))
+
+    return evaluate_network_factors(df_copy, model, labels=labels, factors=factors, **evaluation_kws)
+
