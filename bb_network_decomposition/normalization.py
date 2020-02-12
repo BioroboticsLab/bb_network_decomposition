@@ -1,11 +1,10 @@
 import numpy as np
 import scipy
 import scipy.stats
-import tqdm
 
 
 def rank_transform(interactions, alive_matrices, rank_method='dense'):
-    for mode in tqdm.trange(interactions.shape[-1]):
+    for mode in range(interactions.shape[-1]):
         for day in range(interactions.shape[0]):
             day_alive = alive_matrices[day].max(axis=-1)
             ix = np.ix_([day], np.argwhere(day_alive)[:, 0], np.argwhere(day_alive)[:, 0], [mode])

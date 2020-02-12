@@ -2,8 +2,6 @@ import datetime
 import h5py
 import numpy as np
 import pandas as pd
-import tqdm
-
 import bb_utils
 import bb_utils.meta
 import bb_utils.ids
@@ -54,7 +52,7 @@ def load_location_data(path, keepcols=default_location_data_cols):
 def get_daily_alive_matrices(alive_df, num_days, num_entities, from_date):
     is_alive = np.ones((num_days, num_entities, num_entities), dtype=np.bool)
 
-    for day in tqdm.trange(num_days):
+    for day in range(num_days):
         date = from_date + datetime.timedelta(days=day)
 
         daily_dead = ((alive_df.annotated_tagged_date > date) | (alive_df.inferred_death_date <= date)).values
@@ -71,7 +69,7 @@ def get_factor_dataframe(daily_factors, from_date, alive_df, bee_ids):
     m = bb_utils.meta.BeeMetaInfo()
 
     dfs = []
-    for day in tqdm.trange(num_days):
+    for day in range(num_days):
         date = from_date + datetime.timedelta(days=day)
 
         alive_ids = sorted(alive_df[(alive_df.annotated_tagged_date <= date) & (alive_df.inferred_death_date > date)].bee_id.values)

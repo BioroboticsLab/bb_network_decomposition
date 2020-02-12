@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import tqdm
 import scipy
 import scipy.stats
 import sknetwork
@@ -57,7 +56,7 @@ def decomposition_by_day(interactions, alive_matrices, num_factors, num_jobs=-1,
     results = pool.imap(decompose_wrapper, range(num_days))
 
     daily_factors = []
-    for all_embeddings_day, num_factors_by_mode in tqdm.tqdm(results, total=num_days):
+    for all_embeddings_day, num_factors_by_mode in results:
         daily_factors.append(all_embeddings_day)
 
     return daily_factors, num_factors_by_mode
@@ -79,7 +78,7 @@ def temporal_alignment(daily_factors, alive_matrices, scaler=None):
     num_factors = daily_factors[0].shape[-1]
 
     unscaled_features = []
-    for day in tqdm.trange(num_days):
+    for day in range(num_days):
         if day == 0:
             features_unscaled = daily_factors[day].copy()
             day_alive = alive_matrices[day].max(axis=-1)
