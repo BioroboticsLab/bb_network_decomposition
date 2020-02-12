@@ -7,7 +7,7 @@ import sklearn.model_selection
 location_labels = [
     'dance_floor',
     'honey_storage',
-    'brood_area',
+    'brood_area_combined',
     'near_exit',
 ]
 

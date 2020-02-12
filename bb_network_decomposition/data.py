@@ -25,10 +25,28 @@ def load_alive_data(path, bee_ids):
     return alive_df
 
 
-def load_location_data(path, keepcols=['bee_id', 'date', 'age', 'brood_area', 'dance_floor', 'honey_storage', 'near_exit']):
-    loc_df = pd.read_pickle(path)[keepcols]
+location_cols = [
+    'brood_area', 'brood_area_open', 'dance_floor', 'honey_storage', 'near_exit'
+]
+
+default_location_data_cols = [
+    'bee_id', 'age', 'brood_area', 'brood_area_open', 'brood_area_combined', 'dance_floor', 'honey_storage', 'near_exit'
+]
+
+
+def load_location_data(path, keepcols=default_location_data_cols):
+    loc_df = pd.read_pickle(path)
+
+    if 'brood_area_combined' in keepcols and 'brood_area_combined' not in loc_df.columns:
+        loc_df['brood_area_combined'] = loc_df.brood_area + loc_df.brood_area_open
+
+    loc_df = loc_df[keepcols]
+
     loc_df = loc_df[np.logical_not(loc_df[['brood_area']].isna().max(axis=1))]
-    loc_df['date'] = pd.to_datetime(loc_df.date)
+
+    # remove location features that don't sum up to 1
+    eps = 1e-6
+    loc_df = loc_df[(loc_df[location_cols].sum(axis=1) - 1).abs() < eps]
 
     return loc_df
 
@@ -81,7 +99,7 @@ def factors_from_dataframe(factor_df):
 def merge_location_data(factor_df, location_df):
     print('Locations dataframe shape :', location_df.shape)
     print('Factors dataframe shape :', factor_df.shape)
-    merged_df = pd.merge(location_df, factor_df, how='inner', on=['bee_id', 'age', 'date'])
+    merged_df = pd.merge(location_df, factor_df, how='inner', on=['bee_id', 'age'])
     print('Merged dataframe shape: ', merged_df.shape)
 
     return merged_df
