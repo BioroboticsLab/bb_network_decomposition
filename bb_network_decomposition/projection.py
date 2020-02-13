@@ -49,7 +49,7 @@ def get_pca_projection(factor_df, num_components=2, inplace=False, scale_by_day=
     return factor_df
 
 
-def get_cca_projection(factor_df, location_df, num_components=2, inplace=False, scale_by_day='percentiles'):
+def get_cca_projection(factor_df, location_df, num_components=2, inplace=False, scale_by_day='percentiles', cca=None, return_cca=False):
     if not inplace:
         factor_df = factor_df.copy()
 
@@ -62,9 +62,10 @@ def get_cca_projection(factor_df, location_df, num_components=2, inplace=False, 
         merged_df.honey_storage,
         merged_df.near_exit,
     ), axis=0)
-    factor_projection, location_projection = sklearn.cross_decomposition.CCA(n_components=num_components).fit_transform(
-        factors, targets.T
-    )
+
+    if cca is None:
+        cca = sklearn.cross_decomposition.CCA(n_components=num_components).fit(factors, targets.T)
+    factor_projection, location_projection = cca.transform(factors, targets.T)
 
     merged_df['network_age'] = factor_projection[:, 0]
     scale_projection_by_day(merged_df, 'network_age', inplace=True, how=scale_by_day)
@@ -81,4 +82,7 @@ def get_cca_projection(factor_df, location_df, num_components=2, inplace=False, 
         merged_df[column_name] = location_projection[:, f]
         scale_projection_by_day(merged_df, column_name, inplace=True, how=scale_by_day)
 
-    return merged_df
+    if return_cca:
+        return merged_df, cca
+    else:
+        return merged_df
