@@ -12,7 +12,7 @@ def scale_projection_by_day(factor_df, column, inplace=False, how='percentiles')
     if not inplace:
         factor_df = factor_df.copy()
 
-    if how == False or how is None:
+    if not how:
         return factor_df
 
     for day in factor_df.day.unique():
