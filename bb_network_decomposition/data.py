@@ -11,7 +11,7 @@ def load_networks_h5(path, first_day, last_day):
         labels = list(f['labels'])
         interactions = f['interactions'][first_day:last_day]
         bee_ids = f['bee_ids'][:]
-        bee_ages = f['bee_ages'][:]
+        bee_ages = f['bee_ages'][first_day:last_day]
 
         return interactions, labels, bee_ids, bee_ages
 
