@@ -40,11 +40,12 @@ def load_location_data(path, keepcols=default_location_data_cols):
 
     loc_df = loc_df[keepcols]
 
-    loc_df = loc_df[np.logical_not(loc_df[['brood_area']].isna().max(axis=1))]
+    loc_df = loc_df[np.logical_not(loc_df[keepcols].isna().max(axis=1))]
 
-    # remove location features that don't sum up to 1
-    eps = 1e-6
-    loc_df = loc_df[(loc_df[location_cols].sum(axis=1) - 1).abs() < eps]
+    if all([c in keepcols for c in location_cols]):
+        # remove location features that don't sum up to 1
+        eps = 1e-6
+        loc_df = loc_df[(loc_df[location_cols].sum(axis=1) - 1).abs() < eps]
 
     return loc_df
 
