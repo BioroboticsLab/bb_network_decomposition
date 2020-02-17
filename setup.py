@@ -17,7 +17,7 @@ dep_links = [str(req_line.url) for req_line in install_reqs]
 setup(
     name='bb_network_decomposition',
     version='0.1',
-    description='Beesbook utils',
+    description='Decompose temporal social network using spectral decomposition and CCA',
     author='Benjamin Wild',
     author_email='b.w@fu-berlin.de',
     url='https://github.com/nebw/bb_network_decomposition/',
