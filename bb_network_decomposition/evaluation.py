@@ -5,10 +5,10 @@ import sklearn
 import sklearn.model_selection
 import sklearn.linear_model
 
-from bb_network_decomposition import normalization
-from bb_network_decomposition import spectral
-from bb_network_decomposition import data
-from bb_network_decomposition import projection
+import bb_network_decomposition.normalization
+import bb_network_decomposition.spectral
+import bb_network_decomposition.data
+import bb_network_decomposition.projection
 
 
 location_labels = [
@@ -125,14 +125,14 @@ def evaluate_bee_subsample(keep_proportion, interactions, alive_matrices, bee_id
     bee_ages = bee_ages[:, keep_entities].copy()
     alive_df = alive_df[alive_df.bee_id.isin(bee_ids)].sort_values('bee_id')
 
-    interactions = normalization.rank_transform(interactions, alive_matrices)
-    daily_factors, _ = spectral.decomposition_by_day(
+    interactions = bb_network_decomposition.normalization.rank_transform(interactions, alive_matrices)
+    daily_factors, _ = bb_network_decomposition.spectral.decomposition_by_day(
         interactions, alive_matrices, num_factors_per_mode, num_jobs=4
     )
-    daily_factors_aligned = spectral.temporal_alignment(daily_factors, alive_matrices)
-    factor_df = data.get_factor_dataframe(daily_factors_aligned, from_date, alive_df, bee_ids)
+    daily_factors_aligned = bb_network_decomposition.spectral.temporal_alignment(daily_factors, alive_matrices)
+    factor_df = bb_network_decomposition.data.get_factor_dataframe(daily_factors_aligned, from_date, alive_df, bee_ids)
 
-    cca_factor_df = projection.get_cca_projection(factor_df, location_dataframe)
+    cca_factor_df = bb_network_decomposition.projection.get_cca_projection(factor_df, location_dataframe)
 
     return evaluate_network_factors(cca_factor_df, **evaluation_kws)
 
