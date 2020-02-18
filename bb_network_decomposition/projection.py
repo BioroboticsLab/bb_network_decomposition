@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import scipy
+import scipy.stats
 import sklearn
 import sklearn.cross_decomposition
 import sklearn.decomposition
@@ -15,6 +17,8 @@ def scale_projection_by_day(factor_df, column, inplace=False, how='percentiles')
 
     if not how:
         return factor_df
+
+    factor_df[column] *= np.sign(scipy.stats.pearsonr(factor_df.age, factor_df[column])[0])
 
     for day in factor_df.day.unique():
         idxer = np.argwhere((factor_df.day == day).values)[:, 0], np.argwhere(factor_df.columns == column)[0, 0]
