@@ -95,10 +95,12 @@ def factors_from_dataframe(factor_df):
     return factor_df[['f_{}'.format(f) for f in range(num_factors)]].values.astype(np.float32)
 
 
-def merge_location_data(factor_df, location_df):
-    print('Locations dataframe shape :', location_df.shape)
-    print('Factors dataframe shape :', factor_df.shape)
+def merge_location_data(factor_df, location_df, verbose=False):
+    if verbose:
+        print('Locations dataframe shape :', location_df.shape)
+        print('Factors dataframe shape :', factor_df.shape)
     merged_df = pd.merge(location_df, factor_df, how='inner', on=['bee_id', 'age'])
-    print('Merged dataframe shape: ', merged_df.shape)
+    if verbose:
+        print('Merged dataframe shape: ', merged_df.shape)
 
     return merged_df
