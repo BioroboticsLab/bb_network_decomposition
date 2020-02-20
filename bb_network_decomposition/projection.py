@@ -36,22 +36,38 @@ def scale_projection_by_day(factor_df, column, inplace=False, how='percentiles')
     return factor_df
 
 
-def get_pca_projection(factor_df, num_components=2, inplace=False, scale_by_day='percentiles'):
+def extract_and_scale_factors(factor_df, projection, how, factor_prefix='network', inplace=False):
+    if not inplace:
+        factor_df = factor_df.copy()
+
+    num_components = projection.shape[-1]
+
+    factor_df['{}_age'.format(factor_prefix)] = projection[:, 0]
+    scale_projection_by_day(factor_df, '{}_age'.format(factor_prefix), inplace=True, how=how)
+
+    for f in range(num_components):
+        column_name = '{}_age_{}'.format(factor_prefix, f)
+        factor_df[column_name] = projection[:, f]
+        scale_projection_by_day(factor_df, column_name, inplace=True, how=how)
+
+    return factor_df
+
+
+def get_pca_projection(factor_df, num_components=2, inplace=False,
+                       scale_by_day='percentiles', return_pca=False):
     if not inplace:
         factor_df = factor_df.copy()
 
     factors = bb_network_decomposition.data.factors_from_dataframe(factor_df)
-    projection = sklearn.decomposition.PCA(n_components=num_components).fit_transform(factors)
+    pca = sklearn.decomposition.PCA(n_components=num_components).fit(factors)
+    projection = pca.transform(factors)
 
-    factor_df['network_age'] = projection[:, 0]
-    scale_projection_by_day(factor_df, 'network_age', inplace=True, how=scale_by_day)
+    factor_df = extract_and_scale_factors(factor_df, projection, how=scale_by_day, inplace=True)
 
-    for f in range(num_components):
-        column_name = 'network_age_{}'.format(f)
-        factor_df[column_name] = projection[:, f]
-        scale_projection_by_day(factor_df, column_name, inplace=True, how=scale_by_day)
-
-    return factor_df
+    if return_pca:
+        return factor_df, pca
+    else:
+        return factor_df
 
 
 def get_cca_projection(factor_df, location_df, num_components=2, inplace=False,
@@ -69,20 +85,10 @@ def get_cca_projection(factor_df, location_df, num_components=2, inplace=False,
         cca = sklearn.cross_decomposition.CCA(n_components=num_components).fit(factors, targets)
     factor_projection, location_projection = cca.transform(factors, targets)
 
-    merged_df['network_age'] = factor_projection[:, 0]
-    scale_projection_by_day(merged_df, 'network_age', inplace=True, how=scale_by_day)
-
-    merged_df['location_age'] = location_projection[:, 0]
-    scale_projection_by_day(merged_df, 'location_age', inplace=True, how=scale_by_day)
-
-    for f in range(num_components):
-        column_name = 'network_age_{}'.format(f)
-        merged_df[column_name] = factor_projection[:, f]
-        scale_projection_by_day(merged_df, column_name, inplace=True, how=scale_by_day)
-
-        column_name = 'location_age_{}'.format(f)
-        merged_df[column_name] = location_projection[:, f]
-        scale_projection_by_day(merged_df, column_name, inplace=True, how=scale_by_day)
+    factor_df = extract_and_scale_factors(factor_df, factor_projection, factor_prefix='network',
+                                          how=scale_by_day, inplace=True)
+    factor_df = extract_and_scale_factors(factor_df, location_projection, factor_prefix='location',
+                                          how=scale_by_day, inplace=True)
 
     if return_cca:
         return merged_df, cca
