@@ -89,8 +89,8 @@ def evaluate_network_factors(df, model=None, n_splits=25, groupby=None, labels=l
     return regression_results_df, regression_pivot
 
 
-def evaluate_future_predictability(df, factors=default_factors, labels=location_labels, days_into_future=0,
-                                   min_age=0, max_age=100, evaluation_kws={}):
+def get_timeshifted_df(df, factors=default_factors, labels=location_labels, days_into_future=0,
+                       min_age=0, max_age=100):
     df_shifted = df.copy()
     df_shifted.date -= datetime.timedelta(days=days_into_future)
 
@@ -106,6 +106,13 @@ def evaluate_future_predictability(df, factors=default_factors, labels=location_
 
     df_idxer = (df.age >= min_age) & (df.age < max_age)
     df_shifted = df_shifted[['date', 'bee_id'] + labels].merge(df[df_idxer][['date', 'bee_id', 'day'] + raw_factors], on=('date', 'bee_id'))
+
+    return df_shifted
+
+
+def evaluate_future_predictability(df, factors=default_factors, labels=location_labels, days_into_future=0,
+                                   min_age=0, max_age=100, evaluation_kws={}):
+    df_shifted = get_timeshifted_df(df, factors, labels, days_into_future, min_age, max_age)
 
     return evaluate_network_factors(df_shifted, **evaluation_kws), df_shifted
 
