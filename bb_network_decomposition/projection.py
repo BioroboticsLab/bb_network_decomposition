@@ -85,9 +85,9 @@ def get_cca_projection(factor_df, location_df, num_components=2, inplace=False,
         cca = sklearn.cross_decomposition.CCA(n_components=num_components).fit(factors, targets)
     factor_projection, location_projection = cca.transform(factors, targets)
 
-    factor_df = extract_and_scale_factors(factor_df, factor_projection, factor_prefix='network',
+    merged_df = extract_and_scale_factors(merged_df, factor_projection, factor_prefix='network',
                                           how=scale_by_day, inplace=True)
-    factor_df = extract_and_scale_factors(factor_df, location_projection, factor_prefix='location',
+    merged_df = extract_and_scale_factors(merged_df, location_projection, factor_prefix='location',
                                           how=scale_by_day, inplace=True)
 
     if return_cca:
