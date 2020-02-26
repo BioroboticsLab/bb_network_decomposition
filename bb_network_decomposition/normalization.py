@@ -68,4 +68,3 @@ def knn_transform(interactions, alive_matrices, mode_subset=None):
             interactions[day, :, :, mode] = alive_affinity_matrix
 
     return interactions
-

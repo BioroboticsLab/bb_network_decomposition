@@ -105,7 +105,8 @@ def get_timeshifted_df(df, factors=default_factors, labels=location_labels, days
             raw_factors.append(f)
 
     df_idxer = (df.age >= min_age) & (df.age < max_age)
-    df_shifted = df_shifted[['date', 'bee_id'] + labels].merge(df[df_idxer][['date', 'bee_id', 'day'] + raw_factors], on=('date', 'bee_id'))
+    df_shifted = df_shifted[['date', 'bee_id'] + labels].merge(
+        df[df_idxer][['date', 'bee_id', 'day'] + raw_factors], on=('date', 'bee_id'))
 
     return df_shifted
 
@@ -127,7 +128,8 @@ def evaluate_bee_subsample(keep_proportion, interactions, alive_matrices, bee_id
         replace=False))
 
     alive_matrices = alive_matrices[np.ix_(range(num_days), keep_entities, keep_entities)]
-    interactions = interactions[np.ix_(range(num_days), keep_entities, keep_entities, range(interactions.shape[-1]))].copy()
+    interaction_idxer = np.ix_(range(num_days), keep_entities, keep_entities, range(interactions.shape[-1]))
+    interactions = interactions[interaction_idxer].copy()
     bee_ids = bee_ids[keep_entities].copy()
     bee_ages = bee_ages[:, keep_entities].copy()
     alive_df = alive_df[alive_df.bee_id.isin(bee_ids)].sort_values('bee_id')
@@ -142,4 +144,3 @@ def evaluate_bee_subsample(keep_proportion, interactions, alive_matrices, bee_id
     cca_factor_df = bb_network_decomposition.projection.get_cca_projection(factor_df, location_dataframe)
 
     return evaluate_network_factors(cca_factor_df, **evaluation_kws)
-

@@ -6,6 +6,20 @@ import bb_utils
 import bb_utils.meta
 import bb_utils.ids
 
+
+location_cols = [
+    'brood_area', 'brood_area_open', 'dance_floor', 'honey_storage', 'near_exit'
+]
+
+default_location_data_cols = [
+    'bee_id', 'age', 'brood_area', 'brood_area_open', 'brood_area_combined', 'dance_floor', 'honey_storage', 'near_exit'
+]
+
+default_supplementary_data_cols = [
+    'r_squared', 'day_activity', 'phase', 'amplitude', 'days_left'
+]
+
+
 def load_networks_h5(path, first_day, last_day):
     with h5py.File(path, 'r') as f:
         labels = list(f['labels'])
@@ -21,15 +35,6 @@ def load_alive_data(path, bee_ids):
     alive_df = pd.concat([alive_df[alive_df.bee_id == bee_id] for bee_id in bee_ids])
 
     return alive_df
-
-
-location_cols = [
-    'brood_area', 'brood_area_open', 'dance_floor', 'honey_storage', 'near_exit'
-]
-
-default_location_data_cols = [
-    'bee_id', 'age', 'brood_area', 'brood_area_open', 'brood_area_combined', 'dance_floor', 'honey_storage', 'near_exit'
-]
 
 
 def load_location_data(path, keepcols=default_location_data_cols):
@@ -48,6 +53,10 @@ def load_location_data(path, keepcols=default_location_data_cols):
         loc_df = loc_df[(loc_df[location_cols].sum(axis=1) - 1).abs() < eps]
 
     return loc_df
+
+
+def load_supplementary_data(path, keepcols=default_location_data_cols + default_supplementary_data_cols):
+    return load_location_data(path, keepcols=keepcols)
 
 
 def get_daily_alive_matrices(alive_df, num_days, num_entities, from_date):
@@ -73,15 +82,24 @@ def get_factor_dataframe(daily_factors, from_date, alive_df, bee_ids):
     for day in range(num_days):
         date = from_date + datetime.timedelta(days=day)
 
-        alive_ids = sorted(alive_df[(alive_df.annotated_tagged_date <= date) & (alive_df.inferred_death_date > date)].bee_id.values)
+        alive_df_filter = (alive_df.annotated_tagged_date <= date) & (alive_df.inferred_death_date > date)
+        alive_ids = sorted(alive_df[alive_df_filter].bee_id.values)
 
         bbids = [bb_utils.ids.BeesbookID.from_ferwar(bid) for bid in alive_ids]
         ages = [m.get_age(bid, date).days for bid in bbids]
 
         columns = ['day', 'date', 'bee_id', 'age'] + ['f_{}'.format(f) for f in range(num_factors)]
-        factor_df = pd.DataFrame(np.concatenate((
-            np.array([day for _ in range(len(ages))])[:, None], np.array([date for _ in range(len(ages))])[:, None], np.array(alive_ids)[:, None], np.array(ages)[:, None], daily_factors[day][np.array([(bee_id in alive_ids) for bee_id in bee_ids])]), axis=-1),
-                                columns=columns)
+        factor_df = pd.DataFrame(
+            np.concatenate(
+                (
+                    np.array([day for _ in range(len(ages))])[:, None],
+                    np.array([date for _ in range(len(ages))])[:, None],
+                    np.array(alive_ids)[:, None],
+                    np.array(ages)[:, None],
+                    daily_factors[day][np.array([(bee_id in alive_ids) for bee_id in bee_ids])]
+                ), axis=-1
+            ), columns=columns
+        )
         dfs.append(factor_df)
 
     factor_df = pd.concat(dfs)

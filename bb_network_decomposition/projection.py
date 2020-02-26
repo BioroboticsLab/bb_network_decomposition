@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import scipy
 import scipy.stats
 import sklearn
@@ -22,13 +21,14 @@ def scale_projection_by_day(factor_df, column, inplace=False, how='percentiles')
 
     for day in factor_df.day.unique():
         idxer = np.argwhere((factor_df.day == day).values)[:, 0], np.argwhere(factor_df.columns == column)[0, 0]
+        factors = factor_df.iloc[idxer]
 
         if how == 'percentiles':
-            factor_df.iloc[idxer] -= np.percentile(factor_df.iloc[idxer], 5)
-            factor_df.iloc[idxer] /= np.percentile(factor_df.iloc[idxer], 95)
+            factor_df.iloc[idxer] -= np.percentile(factors, 5)
+            factor_df.iloc[idxer] /= np.percentile(factors, 95)
             factor_df.iloc[idxer] *= 40
         elif how == 'minmax':
-            factor_df.iloc[idxer] = sklearn.preprocessing.MinMaxScaler().fit_transform(factor_df.iloc[idxer][:, None])[:, 0]
+            factor_df.iloc[idxer] = sklearn.preprocessing.MinMaxScaler().fit_transform(factors[:, None])[:, 0]
             factor_df.iloc[idxer] *= 40
         else:
             assert False

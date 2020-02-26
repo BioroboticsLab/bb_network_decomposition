@@ -43,11 +43,13 @@ def decompose_day(interactions, alive_matrices, num_factors, spectral_kws):
     return all_embeddings_day, num_factors_by_mode
 
 
-def decomposition_by_day(interactions, alive_matrices, num_factors, num_jobs=-1, spectral_kws={'regularization': 0.01, 'scaling': 'divide'}):
+def decomposition_by_day(interactions, alive_matrices, num_factors, num_jobs=-1,
+                         spectral_kws={'regularization': 0.01, 'scaling': 'divide'}):
     num_days = interactions.shape[0]
     assert interactions.shape[1] == interactions.shape[2]
 
-    decompose_wrapper = lambda day: decompose_day(interactions[day], alive_matrices[day], num_factors, spectral_kws)
+    def decompose_wrapper(day):
+        return decompose_day(interactions[day], alive_matrices[day], num_factors, spectral_kws)
 
     if num_jobs == -1:
         num_jobs = multiprocessing.cpu_count()
@@ -91,7 +93,8 @@ def temporal_alignment(daily_factors, alive_matrices, scaler=None):
             day_alive = alive_matrices[day].max(axis=-1)
             both_days_alive = (alive_matrices[day].max(axis=-1) & alive_matrices[day-1].max(axis=-1))
             features_unscaled_day = daily_factors[day].copy()
-            corrs = [scipy.stats.spearmanr(unscaled_features[-1][both_days_alive][:, mode], daily_factors[day][both_days_alive][:, mode]) for mode in range(num_factors)]
+            corrs = [scipy.stats.spearmanr(unscaled_features[-1][both_days_alive][:, mode],
+                                           daily_factors[day][both_days_alive][:, mode]) for mode in range(num_factors)]
 
             corr_signs = np.array([np.sign(c.correlation) for c in corrs])[None, :]
             corr_signs[np.isnan(corr_signs)] = 1.
