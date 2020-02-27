@@ -16,7 +16,7 @@ default_location_data_cols = [
 ]
 
 default_supplementary_data_cols = [
-    'r_squared', 'day_activity', 'phase', 'amplitude', 'days_left'
+    'r_squared', 'day_activity', 'phase', 'amplitude', 'days_left', 'velocity', 'velocity_day', 'velocity_night'
 ]
 
 
