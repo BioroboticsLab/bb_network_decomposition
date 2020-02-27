@@ -64,6 +64,8 @@ def get_pca_projection(factor_df, num_components=2, inplace=False,
 
     factor_df = extract_and_scale_factors(factor_df, projection, how=scale_by_day, inplace=True)
 
+    factor_df.sort_values('date', inplace=True)
+
     if return_pca:
         return factor_df, pca
     else:
@@ -81,14 +83,22 @@ def get_cca_projection(factor_df, location_df, num_components=2, inplace=False,
     factors = bb_network_decomposition.data.factors_from_dataframe(merged_df)
     targets = merged_df[target_cols].values
 
+    if targets.ndim == 1:
+        targets = targets[:, None]
+
     if cca is None:
         cca = sklearn.cross_decomposition.CCA(n_components=num_components).fit(factors, targets)
     factor_projection, location_projection = cca.transform(factors, targets)
+
+    if location_projection.ndim == 1:
+        location_projection = location_projection[:, None]
 
     merged_df = extract_and_scale_factors(merged_df, factor_projection, factor_prefix='network',
                                           how=scale_by_day, inplace=True)
     merged_df = extract_and_scale_factors(merged_df, location_projection, factor_prefix='location',
                                           how=scale_by_day, inplace=True)
+
+    merged_df.sort_values('date', inplace=True)
 
     if return_cca:
         return merged_df, cca
