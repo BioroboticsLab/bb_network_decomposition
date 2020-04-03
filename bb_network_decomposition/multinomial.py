@@ -13,7 +13,7 @@ def get_fitted_model(X, Y, null=False, num_steps=10):
     coeffs = torch.zeros((X.shape[-1], Y.shape[-1])).to(device)
     params = [intercepts]
 
-    # for null multi, simply don't update coeffs -> X will never affect
+    # for null model, simply don't update coeffs -> X will never affect
     # regression results
     if not null:
         coeffs = torch.nn.Parameter(coeffs)
