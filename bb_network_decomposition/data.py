@@ -7,36 +7,11 @@ import pandas as pd
 import bb_utils
 import bb_utils.ids
 import bb_utils.meta
-
-location_cols = [
-    "brood_area",
-    "brood_area_open",
-    "dance_floor",
-    "honey_storage",
-    "near_exit",
-]
-
-default_location_data_cols = [
-    "bee_id",
-    "age",
-    "brood_area",
-    "brood_area_open",
-    "brood_area_combined",
-    "dance_floor",
-    "honey_storage",
-    "near_exit",
-]
-
-default_supplementary_data_cols = [
-    "r_squared",
-    "day_activity",
-    "phase",
-    "amplitude",
-    "days_left",
-    "velocity",
-    "velocity_day",
-    "velocity_night",
-]
+from bb_network_decomposition.constants import (
+    default_location_data_cols,
+    default_supplementary_data_cols,
+    location_cols,
+)
 
 
 def load_networks_h5(path, first_day, last_day):

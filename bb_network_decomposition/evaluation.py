@@ -10,17 +10,11 @@ import bb_network_decomposition.data
 import bb_network_decomposition.normalization
 import bb_network_decomposition.projection
 import bb_network_decomposition.spectral
-
-location_labels = [
-    "dance_floor",
-    "honey_storage",
-    "brood_area_combined",
-    "near_exit",
-]
-
-supplementary_labels = bb_network_decomposition.data.default_supplementary_data_cols
-
-default_factors = ["age", "network_age", "network_age_0+network_age_1"]
+from bb_network_decomposition.constants import (
+    default_factors,
+    location_labels,
+    supplementary_labels,
+)
 
 
 def evaluate_network_factors(
