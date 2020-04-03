@@ -17,8 +17,10 @@ def scale_projection_by_day(factor_df, column, inplace=False, how="percentiles")
     if not how:
         return factor_df
 
-    if 'age' in factor_df.columns:
-        factor_df[column] *= np.sign(scipy.stats.pearsonr(factor_df.age, factor_df[column])[0])
+    if "age" in factor_df.columns:
+        factor_df[column] *= np.sign(
+            scipy.stats.pearsonr(factor_df.age, factor_df[column])[0]
+        )
 
     for day in factor_df.day.unique():
         idxer = (
@@ -86,14 +88,23 @@ def get_pca_projection(
         return factor_df
 
 
-def get_cca_projection(factor_df, location_df=None, num_components=2, inplace=False,
-                       scale_by_day='percentiles', cca=None, return_cca=False,
-                       target_cols=bb_network_decomposition.evaluation.location_labels):
+def get_cca_projection(
+    factor_df,
+    location_df=None,
+    num_components=2,
+    inplace=False,
+    scale_by_day="percentiles",
+    cca=None,
+    return_cca=False,
+    target_cols=bb_network_decomposition.evaluation.location_labels,
+):
     if not inplace:
         factor_df = factor_df.copy()
 
     if location_df is not None:
-        merged_df = bb_network_decomposition.data.merge_location_data(factor_df, location_df)
+        merged_df = bb_network_decomposition.data.merge_location_data(
+            factor_df, location_df
+        )
     else:
         merged_df = factor_df
 
