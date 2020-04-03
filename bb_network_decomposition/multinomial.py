@@ -27,7 +27,7 @@ def get_fitted_model(X, Y, null=False, num_steps=10):
 
         logits = torch.mm(X_, coeffs) + intercepts
 
-        probs = torch.nn.functional.softmax(logits, dim=0)
+        probs = torch.nn.functional.softmax(logits, dim=-1)
         multinomial = torch.distributions.multinomial.Multinomial(logits=logits)
         log_probs = multinomial.log_prob(Y_)
 
