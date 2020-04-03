@@ -50,13 +50,16 @@ def get_fitted_model(X, Y, null=False, num_steps=10):
     return evaluate
 
 
-def get_multinomial_likelihoods(
-    loc_df, predictors, labels=bb_network_decomposition.constants.location_labels
-):
-    X = loc_df[predictors].values
-    Y = loc_df[labels].values
+def get_location_multinomial_likelihoods(loc_df, predictors):
+    labels = bb_network_decomposition.constants.location_labels
 
-    log_likelhood, _ = get_fitted_model(X, Y, null=False)(X, Y)
-    log_likelhood_null, _ = get_fitted_model(X, Y, null=True)(X, Y)
+    X = loc_df[predictors].values
+    probs = loc_df[labels].values
+
+    total_counts_used = loc_df["total_count"] - loc_df["other"] - loc_df["not_comb"]
+    counts = total_counts_used.values[:, None] * probs
+
+    log_likelhood, _ = get_fitted_model(X, counts, null=False)(X, counts)
+    log_likelhood_null, _ = get_fitted_model(X, counts, null=True)(X, counts)
 
     return dict(fitted=log_likelhood.sum().item(), null=log_likelhood_null.sum().item())
