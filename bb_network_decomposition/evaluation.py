@@ -18,7 +18,13 @@ location_labels = [
     "near_exit",
 ]
 
-default_factors = ["age", "network_age", "network_age_0+network_age_1"]
+supplementary_labels = bb_network_decomposition.data.default_supplementary_data_cols
+
+default_factors = [
+    'age',
+    'network_age',
+    'network_age_0+network_age_1'
+]
 
 
 def evaluate_network_factors(
@@ -90,14 +96,8 @@ def evaluate_network_factors(
     return regression_results_df, regression_pivot
 
 
-def get_timeshifted_df(
-    df,
-    factors=default_factors,
-    labels=location_labels,
-    days_into_future=0,
-    min_age=0,
-    max_age=100,
-):
+def get_timeshifted_df(df, factors=default_factors, labels=location_labels, days_into_future=0,
+                       min_age=0, max_age=100, return_unshifted_labels=False):
     df_shifted = df.copy()
     df_shifted.date -= datetime.timedelta(days=days_into_future)
 
@@ -111,12 +111,21 @@ def get_timeshifted_df(
         else:
             raw_factors.append(f)
 
-    df_idxer = (df.age >= min_age) & (df.age < max_age)
-    df_shifted = df_shifted[["date", "bee_id"] + labels].merge(
-        df[df_idxer][["date", "bee_id", "day"] + raw_factors], on=("date", "bee_id")
-    )
+    labels_unshifted = []
+    for l in labels:
+        label_name = l + '_unshifted'
+        df[label_name] = df[l].copy()
+        labels_unshifted.append(label_name)
 
-    return df_shifted
+    df_idxer = (df.age >= min_age) & (df.age < max_age)
+    df_shifted = df_shifted[['date', 'bee_id'] + labels].merge(
+        df[df_idxer][['date', 'bee_id', 'day'] + raw_factors + labels_unshifted],
+        on=('date', 'bee_id'))
+
+    if return_unshifted_labels:
+        return df_shifted, labels_unshifted
+    else:
+        return df_shifted
 
 
 def evaluate_future_predictability(
