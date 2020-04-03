@@ -17,9 +17,8 @@ def scale_projection_by_day(factor_df, column, inplace=False, how="percentiles")
     if not how:
         return factor_df
 
-    factor_df[column] *= np.sign(
-        scipy.stats.pearsonr(factor_df.age, factor_df[column])[0]
-    )
+    if 'age' in factor_df.columns:
+        factor_df[column] *= np.sign(scipy.stats.pearsonr(factor_df.age, factor_df[column])[0])
 
     for day in factor_df.day.unique():
         idxer = (
