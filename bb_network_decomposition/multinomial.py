@@ -56,7 +56,7 @@ def get_location_multinomial_likelihoods(loc_df, predictors):
     X = loc_df[predictors].values
     probs = loc_df[labels].values
 
-    total_counts_used = loc_df["total_count"] - loc_df["other"] - loc_df["not_comb"]
+    total_counts_used = loc_df["location_descriptor_count"]
     counts = total_counts_used.values[:, None] * probs
 
     log_likelhood, _ = get_fitted_model(X, counts, null=False)(X, counts)
