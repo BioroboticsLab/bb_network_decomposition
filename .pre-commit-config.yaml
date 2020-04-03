@@ -14,10 +14,15 @@ repos:
     hooks:
     -   id: pyupgrade
         args: [--py36-plus]
-  - repo: git://github.com/FalconSocial/pre-commit-python-sorter
-    rev: master
+  - repo: https://github.com/asottile/seed-isort-config
+    rev: v1.7.0
     hooks:
-    -   id: python-import-sorter
+    -   id: seed-isort-config
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v4.3.9
+    hooks:
+    -   id: isort
+        additional_dependencies: [toml]
   - repo: https://github.com/psf/black
     rev: stable
     hooks:
