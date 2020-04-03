@@ -2,6 +2,7 @@ import datetime
 
 import numpy as np
 import pandas as pd
+import scipy.stats
 import sklearn
 import sklearn.linear_model
 import sklearn.model_selection
@@ -189,3 +190,14 @@ def evaluate_bee_subsample(
     )
 
     return evaluate_network_factors(cca_factor_df, **evaluation_kws)
+
+
+def likelihood_ratio_test(log_prob_null, log_prob_model, dof):
+    G = -2 * (log_prob_null - log_prob_model)
+    p_value = scipy.stats.chi2.sf(G, dof)
+
+    return p_value
+
+
+def rho_mcf(log_probs):
+    return 1 - log_probs["fitted"] / log_probs["null"]
