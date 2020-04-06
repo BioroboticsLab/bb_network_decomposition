@@ -6,7 +6,7 @@ import torch
 import bb_network_decomposition.constants
 
 
-def get_logits(X, Y, intercepts, coeffs):
+def get_output(X, Y, intercepts, coeffs):
     for i in range(len(coeffs)):
         X = torch.mm(X, coeffs[i]) + intercepts[i]
         if i < len(coeffs) - 1:
@@ -22,8 +22,8 @@ def get_logits(X, Y, intercepts, coeffs):
     return X
 
 
-def evaluate_binomial(X, Y, total_counts, intercepts, coeffs):
-    logits = get_logits(X, Y, intercepts, coeffs)[:, 0]
+def evaluate_binomial(X, Y, total_counts, scale, intercepts, coeffs):
+    logits = get_output(X, Y, intercepts, coeffs)[:, 0]
 
     probs = torch.sigmoid(logits)
     binomial = torch.distributions.binomial.Binomial(
@@ -34,8 +34,19 @@ def evaluate_binomial(X, Y, total_counts, intercepts, coeffs):
     return log_probs.cpu(), probs.detach().cpu().numpy()
 
 
-def evaluate_multinomial(X, Y, total_counts, intercepts, coeffs):
-    logits = get_logits(X, Y, intercepts, coeffs)
+def evaluate_normal(X, Y, total_counts, scale, intercepts, coeffs):
+    means = get_output(X, Y, intercepts, coeffs)
+
+    normal = torch.distributions.normal.Normal(
+        means, torch.nn.functional.softplus(scale) + 1e-3
+    )
+    log_probs = normal.log_prob(Y)
+
+    return log_probs.cpu(), means
+
+
+def evaluate_multinomial(X, Y, total_counts, scale, intercepts, coeffs):
+    logits = get_output(X, Y, intercepts, coeffs)
 
     probs = torch.nn.functional.softmax(logits, dim=-1)
     multinomial = torch.distributions.multinomial.Multinomial(logits=logits)
@@ -79,12 +90,19 @@ def get_fitted_model(
     intercepts.append(_get_intercept((Y.shape[-1],)))
 
     params = coeffs + intercepts
+
+    scale = None
+    if evaluation_fn == evaluate_normal:
+        assert total_counts is None
+        scale = torch.nn.Parameter(torch.zeros((1,)).to(device))
+        params.append(scale)
+
     optimizer = torch.optim.LBFGS(params, lr=0.1)
 
     def closure():
         optimizer.zero_grad()
 
-        log_probs, _ = evaluation_fn(X, Y, total_counts, intercepts, coeffs)
+        log_probs, _ = evaluation_fn(X, Y, total_counts, scale, intercepts, coeffs)
         nll = -log_probs.sum()
 
         nll.backward()
@@ -93,7 +111,9 @@ def get_fitted_model(
     for _ in range(num_steps):
         optimizer.step(closure)
 
-    evaluate = functools.partial(evaluation_fn, coeffs=coeffs, intercepts=intercepts)
+    evaluate = functools.partial(
+        evaluation_fn, scale=scale, coeffs=coeffs, intercepts=intercepts
+    )
 
     return evaluate
 
