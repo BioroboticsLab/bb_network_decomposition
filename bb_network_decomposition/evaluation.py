@@ -199,5 +199,5 @@ def likelihood_ratio_test(log_prob_null, log_prob_model, dof):
     return p_value
 
 
-def rho_mcf(log_probs):
-    return 1 - log_probs["fitted"] / log_probs["null"]
+def rho_mcf(log_prob_model, log_prob_null):
+    return 1 - log_prob_model / log_prob_null
