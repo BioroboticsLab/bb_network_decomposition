@@ -7,51 +7,39 @@ import bb_network_decomposition.constants
 
 
 def get_logits(X, Y, intercepts, coeffs):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    X_ = torch.from_numpy(X.astype(np.float32)).to(device)
-    Y_ = torch.from_numpy(Y.astype(np.float32)).to(device)
-
     for i in range(len(coeffs)):
-        X_ = torch.mm(X_, coeffs[i]) + intercepts[i]
+        X = torch.mm(X, coeffs[i]) + intercepts[i]
         if i < len(coeffs) - 1:
-            X_ = torch.tanh(X_)
+            X = torch.tanh(X)
 
     # null model
     if len(coeffs) == 0:
         # workaround for RuntimeError: unsupported operation: more than one element of
         # the written-to tensor refers to a single memory location. Please clone() the
         # tensor before performing the operation.
-        X_ = intercepts[-1] + Y_ * 0
+        X = intercepts[-1] + Y * 0
 
-    return X_
+    return X
 
 
 def evaluate_binomial(X, Y, total_counts, intercepts, coeffs):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    C_ = torch.from_numpy(total_counts.astype(np.int)).to(device)
-    Y_ = torch.from_numpy(Y.astype(np.float32)[:, 0]).to(device)
-
     logits = get_logits(X, Y, intercepts, coeffs)[:, 0]
 
     probs = torch.sigmoid(logits)
-    binomial = torch.distributions.binomial.Binomial(logits=logits, total_count=C_)
-    log_probs = binomial.log_prob(Y_)
+    binomial = torch.distributions.binomial.Binomial(
+        logits=logits, total_count=total_counts
+    )
+    log_probs = binomial.log_prob(Y[:, 0])
 
     return log_probs.cpu(), probs.detach().cpu().numpy()
 
 
 def evaluate_multinomial(X, Y, total_counts, intercepts, coeffs):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    Y_ = torch.from_numpy(Y.astype(np.float32)).to(device)
-
     logits = get_logits(X, Y, intercepts, coeffs)
 
     probs = torch.nn.functional.softmax(logits, dim=-1)
     multinomial = torch.distributions.multinomial.Multinomial(logits=logits)
-    log_probs = multinomial.log_prob(Y_)
+    log_probs = multinomial.log_prob(Y)
 
     return log_probs.cpu(), probs.detach().cpu().numpy()
 
@@ -66,8 +54,6 @@ def get_fitted_model(
     num_steps=10,
     hidden_size=8,
 ):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-
     def _get_weight(shape):
         return torch.nn.Parameter(
             torch.nn.init.orthogonal_(torch.randn(shape).to(device))
@@ -75,6 +61,8 @@ def get_fitted_model(
 
     def _get_intercept(shape):
         return torch.nn.Parameter(torch.zeros(shape).to(device))
+
+    device = X.device
 
     intercepts = []
     coeffs = []
@@ -115,6 +103,7 @@ def get_location_likelihoods(
     predictors,
     labels=bb_network_decomposition.constants.location_labels,
     evaluation_fn=evaluate_multinomial,
+    device="cuda" if torch.cuda.is_available() else "cpu",
 ):
     X = loc_df[predictors].values.astype(np.float)
     X /= X.std(axis=0)[None, :]
@@ -124,21 +113,27 @@ def get_location_likelihoods(
     total_counts_used = loc_df["location_descriptor_count"].values
     counts = total_counts_used[:, None] * probs
 
-    log_likelhood_linear, _ = get_fitted_model(
-        X, counts, total_counts_used, evaluation_fn, null=False
-    )(X, counts, total_counts_used)
-    log_likelhood_nonlinear, _ = get_fitted_model(
-        X, counts, total_counts_used, evaluation_fn, null=False, nonlinear=True,
-    )(X, counts, total_counts_used)
-    log_likelhood_null, _ = get_fitted_model(
-        X, counts, total_counts_used, evaluation_fn, null=True
+    X = torch.from_numpy(X.astype(np.float32)).to(device)
+    counts = torch.from_numpy(counts.astype(np.float32)).to(device)
+    total_counts_used = torch.from_numpy(total_counts_used.astype(np.int)).to(device)
+
+    results = dict()
+
+    for nonlinear in (False, True):
+        name = "nonlinear" if nonlinear else "linear"
+
+        log_likelihood, _ = get_fitted_model(
+            X, counts, total_counts_used, evaluation_fn, null=False, nonlinear=nonlinear
+        )(X, counts, total_counts_used)
+
+        results[f"fitted_{name}"] = log_likelihood.sum().item()
+        results[f"fitted_{name}_mean"] = log_likelihood.mean().item()
+
+    log_likelihood, _ = get_fitted_model(
+        X, counts, total_counts_used, evaluation_fn, null=True, nonlinear=False
     )(X, counts, total_counts_used)
 
-    return dict(
-        fitted_linear=log_likelhood_linear.sum().item(),
-        fitted_nonlinear=log_likelhood_nonlinear.sum().item(),
-        null=log_likelhood_null.sum().item(),
-        fitted_linear_mean=log_likelhood_linear.mean().item(),
-        fitted_nonlinear_mean=log_likelhood_nonlinear.mean().item(),
-        null_mean=log_likelhood_null.mean().item(),
-    )
+    results["null"] = log_likelihood.sum().item()
+    results["null_mean"] = log_likelihood.mean().item()
+
+    return results
