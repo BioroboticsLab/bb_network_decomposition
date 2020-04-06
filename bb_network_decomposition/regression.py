@@ -23,7 +23,10 @@ def get_output(X, Y, intercepts, coeffs):
 
 
 def evaluate_binomial(X, Y, total_counts, scale, intercepts, coeffs):
-    logits = get_output(X, Y, intercepts, coeffs)[:, 0]
+    logits = get_output(X, Y, intercepts, coeffs)
+
+    assert logits.shape[-1] == 1
+    logits = logits[:, 0]
 
     probs = torch.sigmoid(logits)
     binomial = torch.distributions.binomial.Binomial(
@@ -34,11 +37,11 @@ def evaluate_binomial(X, Y, total_counts, scale, intercepts, coeffs):
     return log_probs.cpu(), probs.detach().cpu().numpy()
 
 
-def evaluate_normal(X, Y, total_counts, scale, intercepts, coeffs):
+def evaluate_normal(X, Y, total_counts, scale, intercepts, coeffs, eps=1e-3):
     means = get_output(X, Y, intercepts, coeffs)
 
     normal = torch.distributions.normal.Normal(
-        means, torch.nn.functional.softplus(scale) + 1e-3
+        means, torch.nn.functional.softplus(scale) + eps
     )
     log_probs = normal.log_prob(Y)
 
