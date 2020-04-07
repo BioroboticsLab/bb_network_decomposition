@@ -1,4 +1,5 @@
 import datetime
+import itertools
 
 import numpy as np
 import pandas as pd
@@ -221,10 +222,43 @@ def evaluate_bee_subsample(
     return evaluate_network_factors(cca_factor_df, **evaluation_kws)
 
 
+def bootstrap_location_models(loc_df, var_names, labels, pool, num_bootstrap_samples):
+    eval_fn = (
+        bb_network_decomposition.regression.evaluate_multinomial
+        if len(labels) > 1
+        else bb_network_decomposition.regression.evaluate_binomial
+    )
+
+    bootstrap_results = pool.starmap(
+        bb_network_decomposition.regression.get_location_likelihoods,
+        (
+            (loc_df.sample(frac=1, replace=True), var_names, labels, eval_fn,)
+            for _ in range(num_bootstrap_samples)
+        ),
+    )
+
+    return bootstrap_results
+
+
+def bootstrap_regression_models(loc_df, var_names, labels, pool, num_bootstrap_samples):
+    eval_fn = bb_network_decomposition.regression.evaluate_normal
+
+    bootstrap_results = pool.starmap(
+        bb_network_decomposition.regression.get_regression_likelihoods,
+        (
+            (loc_df.sample(frac=1, replace=True), var_names, labels, eval_fn,)
+            for _ in range(num_bootstrap_samples)
+        ),
+    )
+
+    return bootstrap_results
+
+
 def get_bootstrap_results(
     loc_df,
     variable_names=None,
     label_names=None,
+    regression=False,
     num_bootstrap_samples=64,
     n_jobs=-1,
     use_tqdm=False,
@@ -248,61 +282,26 @@ def get_bootstrap_results(
             [l] for l in bb_network_decomposition.constants.location_labels
         ]
 
+    bootstrap_fn = (
+        bootstrap_regression_models if regression else bootstrap_location_models
+    )
+
     all_results = []
 
     with multiprocessing.Pool(processes=n_jobs) as pool:
         for var_names in iterator_wrapper(variable_names):
             for labels in iterator_wrapper(label_names):
-                eval_fn = (
-                    bb_network_decomposition.regression.evaluate_multinomial
-                    if len(labels) > 1
-                    else bb_network_decomposition.regression.evaluate_binomial
-                )
-
-                bootstrap_results = pool.starmap(
-                    bb_network_decomposition.regression.get_location_likelihoods,
-                    (
-                        (
-                            loc_df.sample(frac=1, replace=True),
-                            var_names,
-                            labels,
-                            eval_fn,
-                        )
-                        for _ in range(num_bootstrap_samples)
-                    ),
+                bootstrap_results = bootstrap_fn(
+                    loc_df, var_names, labels, pool, num_bootstrap_samples
                 )
 
                 for result in bootstrap_results:
-                    all_results.append(
-                        dict(
-                            predictors=",".join(var_names),
-                            target=",".join(labels),
-                            likelihood_linear=result["fitted_linear"],
-                            likelihood_nonlinear=result["fitted_nonlinear"],
-                            likelihood_null=result["null"],
-                            mean_likelihood_linear=result["fitted_linear_mean"],
-                            mean_likelihood_nonlinear=result["fitted_nonlinear_mean"],
-                            mean_likelihood_null=result["null_mean"],
-                            rho_mcf_linear=bb_network_decomposition.evaluation.rho_mcf(
-                                result["fitted_linear"], result["null"]
-                            ),
-                            rho_mcf_nonlinear=bb_network_decomposition.evaluation.rho_mcf(
-                                result["fitted_nonlinear"], result["null"]
-                            ),
-                        )
+                    parsed_result = dict(
+                        predictors=",".join(var_names), target=",".join(labels),
                     )
+                    parsed_result.update(result)
+                    all_results.append(parsed_result)
 
     result_df = pd.DataFrame(all_results)
 
     return result_df
-
-
-def likelihood_ratio_test(log_prob_null, log_prob_model, dof):
-    G = -2 * (log_prob_null - log_prob_model)
-    p_value = scipy.stats.chi2.sf(G, dof)
-
-    return p_value
-
-
-def rho_mcf(log_prob_model, log_prob_null):
-    return 1 - log_prob_model / log_prob_null

@@ -1,9 +1,12 @@
 import functools
 
 import numpy as np
+import sklearn
+import sklearn.metrics
 import torch
 
 import bb_network_decomposition.constants
+import bb_network_decomposition.stats
 
 
 def get_output(X, Y, intercepts, coeffs):
@@ -45,7 +48,7 @@ def evaluate_normal(X, Y, total_counts, scale, intercepts, coeffs, eps=1e-3):
     )
     log_probs = normal.log_prob(Y)
 
-    return log_probs.cpu(), means
+    return log_probs.cpu(), means.detach().cpu().numpy()
 
 
 def evaluate_multinomial(X, Y, total_counts, scale, intercepts, coeffs):
@@ -155,6 +158,55 @@ def get_location_likelihoods(
     log_likelihood, _ = get_fitted_model(
         X, counts, total_counts_used, evaluation_fn, null=True, nonlinear=False
     )(X, counts, total_counts_used)
+
+    results["null"] = log_likelihood.sum().item()
+    results["null_mean"] = log_likelihood.mean().item()
+
+    results["rho_mcf_linear"] = bb_network_decomposition.stats.rho_mcf(
+        results["fitted_linear"], results["null"]
+    )
+    results["rho_mcf_nonlinear"] = bb_network_decomposition.stats.rho_mcf(
+        results["fitted_nonlinear"], results["null"]
+    )
+
+    return results
+
+
+def get_regression_likelihoods(
+    sup_df,
+    predictors,
+    labels=bb_network_decomposition.constants.supplementary_labels,
+    evaluation_fn=evaluate_normal,
+    device="cuda" if torch.cuda.is_available() else "cpu",
+):
+    X = sup_df[predictors].values.astype(np.float)
+    X /= X.std(axis=0)[None, :]
+
+    Y = sup_df[labels].values.astype(np.float)
+    Y /= Y.std(axis=0)[None, :]
+
+    X = torch.from_numpy(X.astype(np.float32)).to(device)
+    Y = torch.from_numpy(Y.astype(np.float32)).to(device)
+
+    results = dict()
+
+    for nonlinear in (False, True):
+        name = "nonlinear" if nonlinear else "linear"
+
+        log_likelihood, Y_hat = get_fitted_model(
+            X, Y, None, evaluation_fn, null=False, nonlinear=nonlinear
+        )(X, Y, None)
+
+        results[f"fitted_{name}_mse"] = sklearn.metrics.mean_squared_error(
+            Y.cpu().numpy(), Y_hat
+        )
+        results[f"fitted_{name}_r2"] = sklearn.metrics.r2_score(Y.cpu().numpy(), Y_hat)
+        results[f"fitted_{name}"] = log_likelihood.sum().item()
+        results[f"fitted_{name}_mean"] = log_likelihood.mean().item()
+
+    log_likelihood, _ = get_fitted_model(
+        X, Y, None, evaluation_fn, null=True, nonlinear=False
+    )(X, Y, None)
 
     results["null"] = log_likelihood.sum().item()
     results["null_mean"] = log_likelihood.mean().item()
