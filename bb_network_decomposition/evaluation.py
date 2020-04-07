@@ -234,8 +234,6 @@ def get_bootstrap_results(
     if n_jobs == -1:
         n_jobs = multiprocessing.cpu_count()
 
-    pool = multiprocessing.Pool(processes=n_jobs)
-
     if variable_names is None:
         variable_names = [
             ["age"],
@@ -252,41 +250,47 @@ def get_bootstrap_results(
 
     all_results = []
 
-    for var_names in iterator_wrapper(variable_names):
-        for labels in iterator_wrapper(label_names):
-            eval_fn = (
-                bb_network_decomposition.regression.evaluate_multinomial
-                if len(labels) > 1
-                else bb_network_decomposition.regression.evaluate_binomial
-            )
-
-            bootstrap_results = pool.starmap(
-                bb_network_decomposition.regression.get_location_likelihoods,
-                (
-                    (loc_df.sample(frac=1, replace=True), var_names, labels, eval_fn,)
-                    for _ in range(num_bootstrap_samples)
-                ),
-            )
-
-            for result in bootstrap_results:
-                all_results.append(
-                    dict(
-                        predictors=",".join(var_names),
-                        target=",".join(labels),
-                        likelihood_linear=result["fitted_linear"],
-                        likelihood_nonlinear=result["fitted_nonlinear"],
-                        likelihood_null=result["null"],
-                        mean_likelihood_linear=result["fitted_linear_mean"],
-                        mean_likelihood_nonlinear=result["fitted_nonlinear_mean"],
-                        mean_likelihood_null=result["null_mean"],
-                        rho_mcf_linear=bb_network_decomposition.evaluation.rho_mcf(
-                            result["fitted_linear"], result["null"]
-                        ),
-                        rho_mcf_nonlinear=bb_network_decomposition.evaluation.rho_mcf(
-                            result["fitted_nonlinear"], result["null"]
-                        ),
-                    )
+    with multiprocessing.Pool(processes=n_jobs) as pool:
+        for var_names in iterator_wrapper(variable_names):
+            for labels in iterator_wrapper(label_names):
+                eval_fn = (
+                    bb_network_decomposition.regression.evaluate_multinomial
+                    if len(labels) > 1
+                    else bb_network_decomposition.regression.evaluate_binomial
                 )
+
+                bootstrap_results = pool.starmap(
+                    bb_network_decomposition.regression.get_location_likelihoods,
+                    (
+                        (
+                            loc_df.sample(frac=1, replace=True),
+                            var_names,
+                            labels,
+                            eval_fn,
+                        )
+                        for _ in range(num_bootstrap_samples)
+                    ),
+                )
+
+                for result in bootstrap_results:
+                    all_results.append(
+                        dict(
+                            predictors=",".join(var_names),
+                            target=",".join(labels),
+                            likelihood_linear=result["fitted_linear"],
+                            likelihood_nonlinear=result["fitted_nonlinear"],
+                            likelihood_null=result["null"],
+                            mean_likelihood_linear=result["fitted_linear_mean"],
+                            mean_likelihood_nonlinear=result["fitted_nonlinear_mean"],
+                            mean_likelihood_null=result["null_mean"],
+                            rho_mcf_linear=bb_network_decomposition.evaluation.rho_mcf(
+                                result["fitted_linear"], result["null"]
+                            ),
+                            rho_mcf_nonlinear=bb_network_decomposition.evaluation.rho_mcf(
+                                result["fitted_nonlinear"], result["null"]
+                            ),
+                        )
+                    )
 
     result_df = pd.DataFrame(all_results)
 
