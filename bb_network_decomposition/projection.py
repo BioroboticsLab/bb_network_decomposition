@@ -6,6 +6,7 @@ import sklearn.cross_decomposition
 import sklearn.decomposition
 import sklearn.preprocessing
 
+import bb_network_decomposition.constants
 import bb_network_decomposition.data
 import bb_network_decomposition.evaluation
 
@@ -96,7 +97,7 @@ def get_cca_projection(
     scale_by_day="percentiles",
     cca=None,
     return_cca=False,
-    target_cols=bb_network_decomposition.evaluation.location_labels,
+    target_cols=bb_network_decomposition.constants.location_labels,
 ):
     if not inplace:
         factor_df = factor_df.copy()

@@ -6,16 +6,19 @@ import scipy.stats
 import sklearn
 import sklearn.linear_model
 import sklearn.model_selection
+import torch.multiprocessing as multiprocessing
+import tqdm.auto as tqdm
 
+import bb_network_decomposition.constants
 import bb_network_decomposition.data
 import bb_network_decomposition.normalization
 import bb_network_decomposition.projection
+import bb_network_decomposition.regression
 import bb_network_decomposition.spectral
-from bb_network_decomposition.constants import (
-    default_factors,
-    location_labels,
-    supplementary_labels,
-)
+
+
+def dummy_iterator_wrapper(iterator):
+    yield from iterator
 
 
 def evaluate_network_factors(
@@ -23,8 +26,8 @@ def evaluate_network_factors(
     model=None,
     n_splits=25,
     groupby=None,
-    labels=location_labels,
-    factors=default_factors,
+    labels=bb_network_decomposition.constants.location_labels,
+    factors=bb_network_decomposition.constants.default_factors,
     scoring=None,
 ):
     def get_factor(factor):
@@ -89,8 +92,8 @@ def evaluate_network_factors(
 
 def get_timeshifted_df(
     df,
-    factors=default_factors,
-    labels=location_labels,
+    factors=bb_network_decomposition.constants.default_factors,
+    labels=bb_network_decomposition.constants.location_labels,
     days_into_future=0,
     min_age=0,
     max_age=100,
@@ -129,8 +132,8 @@ def get_timeshifted_df(
 
 def evaluate_future_predictability(
     df,
-    factors=default_factors,
-    labels=location_labels,
+    factors=bb_network_decomposition.constants.default_factors,
+    labels=bb_network_decomposition.constants.location_labels,
     days_into_future=0,
     min_age=0,
     max_age=100,
@@ -216,6 +219,78 @@ def evaluate_bee_subsample(
     )
 
     return evaluate_network_factors(cca_factor_df, **evaluation_kws)
+
+
+def get_bootstrap_results(
+    loc_df,
+    variable_names=None,
+    label_names=None,
+    num_bootstrap_samples=64,
+    n_jobs=-1,
+    use_tqdm=False,
+):
+    iterator_wrapper = tqdm.tqdm if use_tqdm else dummy_iterator_wrapper
+
+    if n_jobs == -1:
+        n_jobs = multiprocessing.cpu_count()
+
+    pool = multiprocessing.Pool(processes=n_jobs)
+
+    if variable_names is None:
+        variable_names = [
+            ["age"],
+            ["age", "network_age"],
+            ["network_age"],
+            ["network_age", "network_age_1"],
+            ["network_age", "network_age_1", "network_age_2"],
+        ]
+
+    if label_names is None:
+        label_names = [bb_network_decomposition.constants.location_labels] + [
+            [l] for l in bb_network_decomposition.constants.location_labels
+        ]
+
+    all_results = []
+
+    for var_names in iterator_wrapper(variable_names):
+        for labels in iterator_wrapper(label_names):
+            eval_fn = (
+                bb_network_decomposition.regression.evaluate_multinomial
+                if len(labels) > 1
+                else bb_network_decomposition.regression.evaluate_binomial
+            )
+
+            bootstrap_results = pool.starmap(
+                bb_network_decomposition.regression.get_location_likelihoods,
+                (
+                    (loc_df.sample(frac=1, replace=True), var_names, labels, eval_fn,)
+                    for _ in range(num_bootstrap_samples)
+                ),
+            )
+
+            for result in bootstrap_results:
+                all_results.append(
+                    dict(
+                        predictors=",".join(var_names),
+                        target=",".join(labels),
+                        likelihood_linear=result["fitted_linear"],
+                        likelihood_nonlinear=result["fitted_nonlinear"],
+                        likelihood_null=result["null"],
+                        mean_likelihood_linear=result["fitted_linear_mean"],
+                        mean_likelihood_nonlinear=result["fitted_nonlinear_mean"],
+                        mean_likelihood_null=result["null_mean"],
+                        rho_mcf_linear=bb_network_decomposition.evaluation.rho_mcf(
+                            result["fitted_linear"], result["null"]
+                        ),
+                        rho_mcf_nonlinear=bb_network_decomposition.evaluation.rho_mcf(
+                            result["fitted_nonlinear"], result["null"]
+                        ),
+                    )
+                )
+
+    result_df = pd.DataFrame(all_results)
+
+    return result_df
 
 
 def likelihood_ratio_test(log_prob_null, log_prob_model, dof):
