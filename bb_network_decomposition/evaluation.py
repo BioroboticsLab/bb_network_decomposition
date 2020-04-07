@@ -143,7 +143,7 @@ def evaluate_future_predictability(
     return evaluate_network_factors(df_shifted, **evaluation_kws), df_shifted
 
 
-def evaluate_bee_subsample(
+def get_bee_subsample_network_age(
     keep_proportion,
     interactions,
     alive_matrices,
@@ -153,7 +153,6 @@ def evaluate_bee_subsample(
     from_date,
     num_factors_per_mode,
     location_dataframe,
-    evaluation_kws={},
 ):
     num_days = interactions.shape[0]
     num_entities = int(interactions.shape[1] * keep_proportion)
@@ -187,6 +186,33 @@ def evaluate_bee_subsample(
 
     cca_factor_df = bb_network_decomposition.projection.get_cca_projection(
         factor_df, location_dataframe
+    )
+
+    return cca_factor_df
+
+
+def evaluate_bee_subsample(
+    keep_proportion,
+    interactions,
+    alive_matrices,
+    bee_ids,
+    bee_ages,
+    alive_df,
+    from_date,
+    num_factors_per_mode,
+    location_dataframe,
+    evaluation_kws={},
+):
+    cca_factor_df = get_bee_subsample_network_age(
+        keep_proportion,
+        interactions,
+        alive_matrices,
+        bee_ids,
+        bee_ages,
+        alive_df,
+        from_date,
+        num_factors_per_mode,
+        location_dataframe,
     )
 
     return evaluate_network_factors(cca_factor_df, **evaluation_kws)
