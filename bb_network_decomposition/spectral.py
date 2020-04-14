@@ -72,9 +72,9 @@ def decomposition_by_day(
     with multiprocessing.pool.ThreadPool(num_jobs) as pool:
         results = pool.imap(decompose_wrapper, range(num_days))
 
-    daily_factors = []
-    for all_embeddings_day, num_factors_by_mode in results:
-        daily_factors.append(all_embeddings_day)
+        daily_factors = []
+        for all_embeddings_day, num_factors_by_mode in results:
+            daily_factors.append(all_embeddings_day)
 
     return daily_factors, num_factors_by_mode
 
