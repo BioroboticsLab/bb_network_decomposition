@@ -1,5 +1,6 @@
 import multiprocessing
 import multiprocessing.pool
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -113,15 +114,18 @@ def temporal_alignment(daily_factors, alive_matrices, scaler=None):
                 day - 1
             ].max(axis=-1)
             features_unscaled_day = daily_factors[day].copy()
-            corrs = [
-                scipy.stats.spearmanr(
-                    unscaled_features[-1][both_days_alive][:, mode],
-                    daily_factors[day][both_days_alive][:, mode],
-                )
-                for mode in range(num_factors)
-            ]
 
-            corr_signs = np.array([np.sign(c.correlation) for c in corrs])[None, :]
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                corrs = [
+                    scipy.stats.spearmanr(
+                        unscaled_features[-1][both_days_alive][:, mode],
+                        daily_factors[day][both_days_alive][:, mode],
+                    )
+                    for mode in range(num_factors)
+                ]
+                corr_signs = np.array([np.sign(c.correlation) for c in corrs])[None, :]
+
             corr_signs[np.isnan(corr_signs)] = 1.0
             features_unscaled_day[day_alive] *= corr_signs
 
