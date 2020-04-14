@@ -5,4 +5,4 @@
 generated-members=numpy.*,torch.*
 
 [MESSAGES CONTROL]
-disable=unused-argument
+disable=unused-argument,dangerous-default-value
