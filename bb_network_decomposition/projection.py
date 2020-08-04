@@ -98,6 +98,8 @@ def get_cca_projection(
     cca=None,
     return_cca=False,
     target_cols=bb_network_decomposition.constants.location_labels,
+    input_cols="spectral_factors",
+    projection_prefix="network",
 ):
     if not inplace:
         factor_df = factor_df.copy()
@@ -109,7 +111,11 @@ def get_cca_projection(
     else:
         merged_df = factor_df
 
-    factors = bb_network_decomposition.data.factors_from_dataframe(merged_df)
+    if input_cols == "spectral_factors":
+        factors = bb_network_decomposition.data.factors_from_dataframe(merged_df)
+    else:
+        factors = merged_df[input_cols].values.astype(np.float)
+
     targets = merged_df[target_cols].values
 
     if targets.ndim == 1:
@@ -127,7 +133,7 @@ def get_cca_projection(
     merged_df = extract_and_scale_factors(
         merged_df,
         factor_projection,
-        factor_prefix="network",
+        factor_prefix=projection_prefix,
         how=scale_by_day,
         inplace=True,
     )
