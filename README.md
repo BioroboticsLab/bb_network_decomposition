@@ -575,7 +575,7 @@ regression_results = bb_network_decomposition.evaluation.get_bootstrap_results(
     
 
 
-These results correspond to section 5 of the manuscript: _Network age predicts an individualâs behavior and future role in the colony_
+These results correspond to section 5 of the manuscript: _Network age predicts an individual's behavior and future role in the colony_
 
 
 ```python
