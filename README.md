@@ -3,6 +3,10 @@ Analyze social networks using spectral decomposition over time.
 
 Preprint available here: [DOI 10.1101/2020.05.06.076943](https://doi.org/10.1101/2020.05.06.076943 )
 
+## Usage example
+
+This sample code showcases how to load the raw input data, calculate network age, and fit and evaluate the multinomial task regression and supplementary regression models.
+
 ```python
 import datetime
 import pandas as pd
@@ -687,7 +691,7 @@ regression_results.groupby(["predictors", "target"]).rho_mcf_linear.mean()
 
 These results correspond to section 3 of the manuscript: _Network age correctly identifies task allocation_
 
-Cite as:
+## Citation
 Social networks predict the life and death of honey bees
 Benjamin Wild, David M Dormagen, Adrian Zachariae, Michael L Smith, Kirsten S Traynor, Dirk Brockmann, Iain D Couzin, Tim Landgraf
 bioRxiv 2020.05.06.076943; doi: https://doi.org/10.1101/2020.05.06.076943 
