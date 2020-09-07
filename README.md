@@ -692,8 +692,6 @@ regression_results.groupby(["predictors", "target"]).rho_mcf_linear.mean()
 These results correspond to section 3 of the manuscript: _Network age correctly identifies task allocation_
 
 ## Citation
-Social networks predict the life and death of honey bees
-
-Benjamin Wild, David M Dormagen, Adrian Zachariae, Michael L Smith, Kirsten S Traynor, Dirk Brockmann, Iain D Couzin, Tim Landgraf
-
+Social networks predict the life and death of honey bees<br/>
+Benjamin Wild, David M Dormagen, Adrian Zachariae, Michael L Smith, Kirsten S Traynor, Dirk Brockmann, Iain D Couzin, Tim Landgraf<br/>
 bioRxiv 2020.05.06.076943; doi: https://doi.org/10.1101/2020.05.06.076943 
