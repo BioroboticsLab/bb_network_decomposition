@@ -1,4 +1,4 @@
-# bb_network_decomposition
+# Social networks predict the life and death of honey bees
 Analyze social networks using spectral decomposition over time.
 
 
