@@ -1,4 +1,4 @@
-Note: A rendered version of this markdown readme file can be found here: github.com/nebw/bb_network_decomposition
+Note: A rendered version of this markdown readme file can be found here: github.com/BioroboticsLab/bb_network_decomposition
 
 The sample code is also included as a jupyter notebook within this archive (UsageExample.ipynb).
 
@@ -16,12 +16,12 @@ import datetime
 import pandas as pd
 import numpy as np
 
-# https://github.com/nebw/bb_network_decomposition
+# https://github.com/BioroboticsLab/bb_network_decomposition
 
 # the module can be installed using pip:
-# $ pip3 install --user git+https://github.com/nebw/bb_network_decomposition.git
+# $ pip3 install --user git+https://github.com/BioroboticsLab/bb_network_decomposition.git
 # the dependencies should be installed automatically:
-# https://github.com/nebw/bb_network_decomposition/blob/master/requirements.txt
+# https://github.com/BioroboticsLab/bb_network_decomposition/blob/master/requirements.txt
 # please note that you may have to install the dependency bb_utils manually:
 # $ pip3 install --user git+https://github.com/BioroboticsLab/bb_utils.git
 import bb_network_decomposition
