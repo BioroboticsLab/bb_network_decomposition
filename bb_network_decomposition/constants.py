@@ -1,6 +1,5 @@
 location_cols = [
-    "brood_area",
-    "brood_area_open",
+    "brood_area_total",
     "dance_floor",
     "honey_storage",
     "near_exit",
@@ -9,21 +8,15 @@ location_cols = [
 default_location_data_cols = [
     "bee_id",
     "age",
-    "brood_area",
-    "brood_area_open",
-    "brood_area_combined",
+    "brood_area_total",
     "dance_floor",
     "honey_storage",
     "near_exit",
 ]
 
 default_supplementary_data_cols = [
-    "r_squared",
-    "day_activity",
-    "phase",
-    "amplitude",
+    "circadian_rhythm",
     "days_left",
-    "velocity",
     "velocity_day",
     "velocity_night",
 ]
@@ -31,7 +24,7 @@ default_supplementary_data_cols = [
 location_labels = [
     "dance_floor",
     "honey_storage",
-    "brood_area_combined",
+    "brood_area_total",
     "near_exit",
 ]
 

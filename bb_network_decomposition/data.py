@@ -34,16 +34,10 @@ def load_alive_data(path, bee_ids):
 
 
 def load_location_data(path, keepcols=default_location_data_cols):
-    loc_df = pd.read_pickle(path)
-
-    if (
-        "brood_area_combined" in keepcols
-        and "brood_area_combined" not in loc_df.columns
-    ):
-        loc_df["brood_area_combined"] = loc_df.brood_area + loc_df.brood_area_open
-
+    loc_df = pd.read_csv(
+        path, parse_dates=["date"]
+    )
     loc_df = loc_df[keepcols]
-
     loc_df = loc_df[np.logical_not(loc_df[keepcols].isna().max(axis=1))]
 
     if all([c in keepcols for c in location_cols]):
