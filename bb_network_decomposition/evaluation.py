@@ -1,11 +1,12 @@
 import datetime
+import itertools
 
 import numpy as np
 import pandas as pd
 import sklearn
 import sklearn.linear_model
 import sklearn.model_selection
-import torch.multiprocessing as multiprocessing
+import uuid
 import tqdm.auto as tqdm
 
 import bb_network_decomposition.constants
@@ -227,7 +228,7 @@ def bootstrap_location_models(loc_df, var_names, labels, pool, num_bootstrap_sam
         else bb_network_decomposition.regression.evaluate_binomial
     )
 
-    bootstrap_results = pool.starmap(
+    bootstrap_results = itertools.starmap(
         bb_network_decomposition.regression.get_location_likelihoods,
         (
             (loc_df.sample(frac=1, replace=True), var_names, labels, eval_fn,)
@@ -241,7 +242,7 @@ def bootstrap_location_models(loc_df, var_names, labels, pool, num_bootstrap_sam
 def bootstrap_regression_models(loc_df, var_names, labels, pool, num_bootstrap_samples):
     eval_fn = bb_network_decomposition.regression.evaluate_normal
 
-    bootstrap_results = pool.starmap(
+    bootstrap_results = itertools.starmap(
         bb_network_decomposition.regression.get_regression_likelihoods,
         (
             (loc_df.sample(frac=1, replace=True), var_names, labels, eval_fn,)
@@ -263,9 +264,6 @@ def get_bootstrap_results(
 ):
     iterator_wrapper = tqdm.tqdm if use_tqdm else dummy_iterator_wrapper
 
-    if n_jobs == -1:
-        n_jobs = multiprocessing.cpu_count()
-
     if variable_names is None:
         variable_names = [
             ["age"],
@@ -286,19 +284,21 @@ def get_bootstrap_results(
 
     all_results = []
 
-    with multiprocessing.Pool(processes=n_jobs) as pool:
-        for var_names in iterator_wrapper(variable_names):
-            for labels in iterator_wrapper(label_names):
-                bootstrap_results = bootstrap_fn(
-                    loc_df, var_names, labels, pool, num_bootstrap_samples
-                )
+    pool = None
 
-                for result in bootstrap_results:
-                    parsed_result = dict(
-                        predictors=",".join(var_names), target=",".join(labels),
-                    )
-                    parsed_result.update(result)
-                    all_results.append(parsed_result)
+    for var_names in iterator_wrapper(variable_names):
+        for labels in iterator_wrapper(label_names):
+            bootstrap_results = bootstrap_fn(
+                loc_df, var_names, labels, pool, num_bootstrap_samples
+            )
+
+            for result in bootstrap_results:
+                parsed_result = dict(
+                    predictors=",".join(var_names), target=",".join(labels),
+                    trial_uuid=uuid.uuid4(),
+                )
+                parsed_result.update(result)
+                all_results.append(parsed_result)
 
     result_df = pd.DataFrame(all_results)
 

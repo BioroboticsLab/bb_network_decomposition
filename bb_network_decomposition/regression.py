@@ -154,6 +154,7 @@ def get_location_likelihoods(
 
         results[f"fitted_{name}"] = log_likelihood.sum().item()
         results[f"fitted_{name}_mean"] = log_likelihood.mean().item()
+        results[f"fitted_{name}_lls"] = log_likelihood.detach().cpu().numpy()
 
     log_likelihood, _ = get_fitted_model(
         X, counts, total_counts_used, evaluation_fn, null=True, nonlinear=False
@@ -161,6 +162,7 @@ def get_location_likelihoods(
 
     results["null"] = log_likelihood.sum().item()
     results["null_mean"] = log_likelihood.mean().item()
+    results["null_lls"] = log_likelihood.detach().cpu().numpy()
 
     results["rho_mcf_linear"] = bb_network_decomposition.stats.rho_mcf(
         results["fitted_linear"], results["null"]
@@ -203,6 +205,7 @@ def get_regression_likelihoods(
         results[f"fitted_{name}_r2"] = sklearn.metrics.r2_score(Y.cpu().numpy(), Y_hat)
         results[f"fitted_{name}"] = log_likelihood.sum().item()
         results[f"fitted_{name}_mean"] = log_likelihood.mean().item()
+        results[f"fitted_{name}_lls"] = log_likelihood.detach().cpu().numpy()
 
     log_likelihood, _ = get_fitted_model(
         X, Y, None, evaluation_fn, null=True, nonlinear=False

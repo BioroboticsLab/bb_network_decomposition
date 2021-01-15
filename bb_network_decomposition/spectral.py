@@ -1,5 +1,3 @@
-import multiprocessing
-import multiprocessing.pool
 import warnings
 
 import numpy as np
@@ -66,16 +64,12 @@ def decomposition_by_day(
             interactions[day], alive_matrices[day], num_factors, spectral_kws
         )
 
-    if num_jobs == -1:
-        num_jobs = multiprocessing.cpu_count()
-
     num_factors_by_mode = None
-    with multiprocessing.pool.ThreadPool(num_jobs) as pool:
-        results = pool.imap(decompose_wrapper, range(num_days))
+    results = map(decompose_wrapper, range(num_days))
 
-        daily_factors = []
-        for all_embeddings_day, num_factors_by_mode in results:
-            daily_factors.append(all_embeddings_day)
+    daily_factors = []
+    for all_embeddings_day, num_factors_by_mode in results:
+        daily_factors.append(all_embeddings_day)
 
     assert num_factors_by_mode is not None
 
