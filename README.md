@@ -1,11 +1,10 @@
 Note: A rendered version of this markdown readme file can be found here: github.com/BioroboticsLab/bb_network_decomposition
 
-The sample code is also included as a jupyter notebook within this archive (UsageExample.ipynb).
-
 # Social networks predict the life and death of honey bees
 Analyze social networks using spectral decomposition over time.
 
-Preprint available here: [DOI 10.1101/2020.05.06.076943](https://doi.org/10.1101/2020.05.06.076943 )
+Preprint: [DOI 10.1101/2020.05.06.076943](https://doi.org/10.1101/2020.05.06.076943 )
+Data: [DOI 10.5281/zenodo.4438013](https://doi.org/10.5281/zenodo.4438013 )
 
 ## Usage example
 
@@ -35,13 +34,13 @@ import bb_network_decomposition.evaluation
 
 ```python
 # location of interaction network hdf5 file
-raw_networks_path = "interaction_networks_20160812.h5"
+raw_networks_path = "zenodo/interaction_networks_20160729to20160827.h5"
 
 # location of bee metainfo (location descriptors, supplementary labels, ...)
-supplementary_data_path = "supplementary_data.pkl.gz"
+supplementary_data_path = "zenodo/bee_daily_data.csv"
 
 # location of results of bayesian lifetime model
-alive_path = "alive_bees_bayesian.csv"
+alive_path = "zenodo/alive_bees_bayesian.csv"
 ```
 
 
@@ -50,7 +49,7 @@ alive_path = "alive_bees_bayesian.csv"
 # used to match interaction data with supplementary data (locations, etc.)
 from_date = datetime.datetime(2016, 8, 12)
 
-# number of days in the dataset
+# number of days to use (incrase to reproduce paper results)
 num_days = 1
 
 # load interaction data
@@ -593,52 +592,32 @@ regression_results.groupby(["predictors", "target"]).fitted_linear_r2.mean()
 
 
 
-    predictors                               target                                                                               
-    age                                      amplitude                                                                                0.409456
-                                             day_activity                                                                             0.342167
-                                             days_left                                                                                0.008539
-                                             phase                                                                                    0.030095
-                                             r_squared                                                                                0.332327
-                                             r_squared,day_activity,phase,amplitude,days_left,velocity,velocity_day,velocity_night    0.190462
-                                             velocity                                                                                 0.003818
-                                             velocity_day                                                                             0.070043
-                                             velocity_night                                                                           0.289366
-    age,network_age                          amplitude                                                                                0.728855
-                                             day_activity                                                                             0.618318
-                                             days_left                                                                                0.173008
-                                             phase                                                                                    0.035250
-                                             r_squared                                                                                0.666513
-                                             r_squared,day_activity,phase,amplitude,days_left,velocity,velocity_day,velocity_night    0.365774
-                                             velocity                                                                                 0.050857
-                                             velocity_day                                                                             0.302056
-                                             velocity_night                                                                           0.333130
-    network_age                              amplitude                                                                                0.722016
-                                             day_activity                                                                             0.612746
-                                             days_left                                                                                0.121862
-                                             phase                                                                                    0.029661
-                                             r_squared                                                                                0.672673
-                                             r_squared,day_activity,phase,amplitude,days_left,velocity,velocity_day,velocity_night    0.343061
-                                             velocity                                                                                 0.011010
-                                             velocity_day                                                                             0.285271
-                                             velocity_night                                                                           0.279105
-    network_age,network_age_1                amplitude                                                                                0.733828
-                                             day_activity                                                                             0.629475
-                                             days_left                                                                                0.217552
-                                             phase                                                                                    0.036135
-                                             r_squared                                                                                0.703972
-                                             r_squared,day_activity,phase,amplitude,days_left,velocity,velocity_day,velocity_night    0.431932
-                                             velocity                                                                                 0.288056
-                                             velocity_day                                                                             0.476202
-                                             velocity_night                                                                           0.421254
-    network_age,network_age_1,network_age_2  amplitude                                                                                0.737577
-                                             day_activity                                                                             0.638710
-                                             days_left                                                                                0.277842
-                                             phase                                                                                    0.028998
-                                             r_squared                                                                                0.699738
-                                             r_squared,day_activity,phase,amplitude,days_left,velocity,velocity_day,velocity_night    0.450693
-                                             velocity                                                                                 0.289144
-                                             velocity_day                                                                             0.477058
-                                             velocity_night                                                                           0.435172
+    predictors                               target                                                
+    age                                      circadian_rhythm                                          0.331907
+                                             circadian_rhythm,days_left,velocity_day,velocity_night    0.172621
+                                             days_left                                                 0.012523
+                                             velocity_day                                              0.083986
+                                             velocity_night                                            0.286554
+    age,network_age                          circadian_rhythm                                          0.403065
+                                             circadian_rhythm,days_left,velocity_day,velocity_night    0.210112
+                                             days_left                                                 0.015316
+                                             velocity_day                                              0.095954
+                                             velocity_night                                            0.292630
+    network_age                              circadian_rhythm                                          0.387444
+                                             circadian_rhythm,days_left,velocity_day,velocity_night    0.199390
+                                             days_left                                                 0.010289
+                                             velocity_day                                              0.112123
+                                             velocity_night                                            0.243061
+    network_age,network_age_1                circadian_rhythm                                          0.390725
+                                             circadian_rhythm,days_left,velocity_day,velocity_night    0.227511
+                                             days_left                                                 0.071366
+                                             velocity_day                                              0.112483
+                                             velocity_night                                            0.266663
+    network_age,network_age_1,network_age_2  circadian_rhythm                                          0.433800
+                                             circadian_rhythm,days_left,velocity_day,velocity_night    0.226100
+                                             days_left                                                 0.065899
+                                             velocity_day                                              0.148080
+                                             velocity_night                                            0.260883
     Name: fitted_linear_r2, dtype: float64
 
 
@@ -666,34 +645,33 @@ regression_results.groupby(["predictors", "target"]).rho_mcf_linear.mean()
 
 
 
-    predictors                               target                                                 
-    age                                      brood_area_combined                                        0.553175
-                                             dance_floor                                                0.429614
-                                             dance_floor,honey_storage,brood_area_combined,near_exit    0.422377
-                                             honey_storage                                              0.027742
-                                             near_exit                                                  0.307777
-    age,network_age                          brood_area_combined                                        0.839570
-                                             dance_floor                                                0.698683
-                                             dance_floor,honey_storage,brood_area_combined,near_exit    0.713747
-                                             honey_storage                                              0.167036
-                                             near_exit                                                  0.591068
-    network_age                              brood_area_combined                                        0.823143
-                                             dance_floor                                                0.672683
-                                             dance_floor,honey_storage,brood_area_combined,near_exit    0.689778
-                                             honey_storage                                              0.012179
-                                             near_exit                                                  0.578983
-    network_age,network_age_1                brood_area_combined                                        0.909038
-                                             dance_floor                                                0.760216
-                                             dance_floor,honey_storage,brood_area_combined,near_exit    0.840186
-                                             honey_storage                                              0.627782
-                                             near_exit                                                  0.741501
-    network_age,network_age_1,network_age_2  brood_area_combined                                        0.920155
-                                             dance_floor                                                0.814976
-                                             dance_floor,honey_storage,brood_area_combined,near_exit    0.853796
-                                             honey_storage                                              0.695881
-                                             near_exit                                                  0.781704
-    Name: rho_mcf_linear, dtype: float64
-
+predictors                               target                                              
+age                                      brood_area_total                                        0.546260
+                                         dance_floor                                             0.417913
+                                         dance_floor,honey_storage,brood_area_total,near_exit    0.415424
+                                         honey_storage                                           0.026411
+                                         near_exit                                               0.314711
+age,network_age                          brood_area_total                                        0.584782
+                                         dance_floor                                             0.512601
+                                         dance_floor,honey_storage,brood_area_total,near_exit    0.475106
+                                         honey_storage                                           0.051840
+                                         near_exit                                               0.376673
+network_age                              brood_area_total                                        0.555143
+                                         dance_floor                                             0.477920
+                                         dance_floor,honey_storage,brood_area_total,near_exit    0.443385
+                                         honey_storage                                           0.003832
+                                         near_exit                                               0.357418
+network_age,network_age_1                brood_area_total                                        0.577571
+                                         dance_floor                                             0.477131
+                                         dance_floor,honey_storage,brood_area_total,near_exit    0.462893
+                                         honey_storage                                           0.166705
+                                         near_exit                                               0.386814
+network_age,network_age_1,network_age_2  brood_area_total                                        0.575683
+                                         dance_floor                                             0.499749
+                                         dance_floor,honey_storage,brood_area_total,near_exit    0.475821
+                                         honey_storage                                           0.160835
+                                         near_exit                                               0.445180
+Name: rho_mcf_linear, dtype: float64
 
 
 These results correspond to section 3 of the manuscript: _Network age correctly identifies task allocation_
