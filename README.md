@@ -503,7 +503,7 @@ cca_factor_df.sort_values("date", inplace=True)
 
 _cca\_factor\_df_ now contains the network age for all individuals on all dates in the dataset.
 
-The column _network\_age_ contains the first dimension of network age (used throughout most of the paper), 
+The column _network\_age_ contains the first dimension of network age (used throughout most of the paper),
 and the second and third dimensions are stored in the columns _network\_age\_1_ and _network\_age\_2_.
 
 
@@ -577,8 +577,8 @@ regression_results = bb_network_decomposition.evaluation.get_bootstrap_results(
 
 
 
-    
-    
+
+
 
 
 These results correspond to section 5 of the manuscript: _Network age predicts an individual's behavior and future role in the colony_
@@ -592,7 +592,7 @@ regression_results.groupby(["predictors", "target"]).fitted_linear_r2.mean()
 
 
 
-    predictors                               target                                                
+    predictors                               target
     age                                      circadian_rhythm                                          0.331907
                                              circadian_rhythm,days_left,velocity_day,velocity_night    0.172621
                                              days_left                                                 0.012523
@@ -632,8 +632,8 @@ regression_results = bb_network_decomposition.evaluation.get_bootstrap_results(
 
 
 
-    
-    
+
+
 
 
 
@@ -645,33 +645,34 @@ regression_results.groupby(["predictors", "target"]).rho_mcf_linear.mean()
 
 
 
-predictors                               target                                              
-age                                      brood_area_total                                        0.546260
-                                         dance_floor                                             0.417913
-                                         dance_floor,honey_storage,brood_area_total,near_exit    0.415424
-                                         honey_storage                                           0.026411
-                                         near_exit                                               0.314711
-age,network_age                          brood_area_total                                        0.584782
-                                         dance_floor                                             0.512601
-                                         dance_floor,honey_storage,brood_area_total,near_exit    0.475106
-                                         honey_storage                                           0.051840
-                                         near_exit                                               0.376673
-network_age                              brood_area_total                                        0.555143
-                                         dance_floor                                             0.477920
-                                         dance_floor,honey_storage,brood_area_total,near_exit    0.443385
-                                         honey_storage                                           0.003832
-                                         near_exit                                               0.357418
-network_age,network_age_1                brood_area_total                                        0.577571
-                                         dance_floor                                             0.477131
-                                         dance_floor,honey_storage,brood_area_total,near_exit    0.462893
-                                         honey_storage                                           0.166705
-                                         near_exit                                               0.386814
-network_age,network_age_1,network_age_2  brood_area_total                                        0.575683
-                                         dance_floor                                             0.499749
-                                         dance_floor,honey_storage,brood_area_total,near_exit    0.475821
-                                         honey_storage                                           0.160835
-                                         near_exit                                               0.445180
-Name: rho_mcf_linear, dtype: float64
+    predictors                               target
+    age                                      brood_area_total                                        0.546260
+                                             dance_floor                                             0.417913
+                                             dance_floor,honey_storage,brood_area_total,near_exit    0.415424
+                                             honey_storage                                           0.026411
+                                             near_exit                                               0.314711
+    age,network_age                          brood_area_total                                        0.584782
+                                             dance_floor                                             0.512601
+                                             dance_floor,honey_storage,brood_area_total,near_exit    0.475106
+                                             honey_storage                                           0.051840
+                                             near_exit                                               0.376673
+    network_age                              brood_area_total                                        0.555143
+                                             dance_floor                                             0.477920
+                                             dance_floor,honey_storage,brood_area_total,near_exit    0.443385
+                                             honey_storage                                           0.003832
+                                             near_exit                                               0.357418
+    network_age,network_age_1                brood_area_total                                        0.577571
+                                             dance_floor                                             0.477131
+                                             dance_floor,honey_storage,brood_area_total,near_exit    0.462893
+                                             honey_storage                                           0.166705
+                                             near_exit                                               0.386814
+    network_age,network_age_1,network_age_2  brood_area_total                                        0.575683
+                                             dance_floor                                             0.499749
+                                             dance_floor,honey_storage,brood_area_total,near_exit    0.475821
+                                             honey_storage                                           0.160835
+                                             near_exit                                               0.445180
+    Name: rho_mcf_linear, dtype: float64
+
 
 
 These results correspond to section 3 of the manuscript: _Network age correctly identifies task allocation_
@@ -679,4 +680,4 @@ These results correspond to section 3 of the manuscript: _Network age correctly 
 ## Citation
 Social networks predict the life and death of honey bees<br/>
 Benjamin Wild, David M Dormagen, Adrian Zachariae, Michael L Smith, Kirsten S Traynor, Dirk Brockmann, Iain D Couzin, Tim Landgraf<br/>
-bioRxiv 2020.05.06.076943; doi: https://doi.org/10.1101/2020.05.06.076943 
+bioRxiv 2020.05.06.076943; doi: https://doi.org/10.1101/2020.05.06.076943

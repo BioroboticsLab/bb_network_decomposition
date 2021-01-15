@@ -34,9 +34,7 @@ def load_alive_data(path, bee_ids):
 
 
 def load_location_data(path, keepcols=default_location_data_cols):
-    loc_df = pd.read_csv(
-        path, parse_dates=["date"]
-    )
+    loc_df = pd.read_csv(path, parse_dates=["date"])
     loc_df = loc_df[keepcols]
     loc_df = loc_df[np.logical_not(loc_df[keepcols].isna().max(axis=1))]
 

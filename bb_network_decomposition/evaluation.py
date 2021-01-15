@@ -1,12 +1,12 @@
 import datetime
 import itertools
+import uuid
 
 import numpy as np
 import pandas as pd
 import sklearn
 import sklearn.linear_model
 import sklearn.model_selection
-import uuid
 import tqdm.auto as tqdm
 
 import bb_network_decomposition.constants
@@ -231,7 +231,12 @@ def bootstrap_location_models(loc_df, var_names, labels, pool, num_bootstrap_sam
     bootstrap_results = itertools.starmap(
         bb_network_decomposition.regression.get_location_likelihoods,
         (
-            (loc_df.sample(frac=1, replace=True), var_names, labels, eval_fn,)
+            (
+                loc_df.sample(frac=1, replace=True),
+                var_names,
+                labels,
+                eval_fn,
+            )
             for _ in range(num_bootstrap_samples)
         ),
     )
@@ -245,7 +250,12 @@ def bootstrap_regression_models(loc_df, var_names, labels, pool, num_bootstrap_s
     bootstrap_results = itertools.starmap(
         bb_network_decomposition.regression.get_regression_likelihoods,
         (
-            (loc_df.sample(frac=1, replace=True), var_names, labels, eval_fn,)
+            (
+                loc_df.sample(frac=1, replace=True),
+                var_names,
+                labels,
+                eval_fn,
+            )
             for _ in range(num_bootstrap_samples)
         ),
     )
@@ -294,7 +304,8 @@ def get_bootstrap_results(
 
             for result in bootstrap_results:
                 parsed_result = dict(
-                    predictors=",".join(var_names), target=",".join(labels),
+                    predictors=",".join(var_names),
+                    target=",".join(labels),
                     trial_uuid=uuid.uuid4(),
                 )
                 parsed_result.update(result)
